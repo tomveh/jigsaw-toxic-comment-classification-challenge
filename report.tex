@@ -1,0 +1,185 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{times}
+\usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{upgreek}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage[]{algorithm2e}
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+
+\title{Hands-on-NLP project \\ Toxic comment classification challenge}
+\author{Jukka Pajunen (597092), Tommi Vehviläinen (439613)}
+\begin{document}
+\maketitle
+
+\section{Introduction }
+
+This report is for the course Hands-on-nlp and it covers implementations for classifying toxic comments. Dataset that was used for solving this problem is available at \ref{datalink}. It was noticed that people stop expressing themselves due to threat of abuse and harassment, which in turn stops productive conversations. The problem in question is provided as a Kaggle challenge also available at \ref{datalink}. In the challenge comments have six possible toxic classes that are
+\begin{itemize}
+\item Toxic comments
+\item Severe Toxic comments
+\item Obscene comments
+\item Threatening comments
+\item Insulting comments
+\item Identity hate comments
+\end{itemize}   
+and participants are expected to classify comments to any subset of these classes (so the problem is a multi class-classification). Dataset that's provided for the challenge is from Wikipedia's talk page edits and goal of the challenge is to help online discussion to become more productive and respectful. 
+
+In the Kaggle competition, they use evaluation metric of ROC-AUC, that evaluates fraction of true positives against the fraction of false positives. When we look at the leaderboads for the given challenge, we can see that everyone in top 50 have achieved score above $0.98$, which would imply that classification of toxic comments in this context is doable and with simple methods one might be able to achieve decent results. 
+
+\section{Exploratory Data Analysis }
+
+\subsection{Comment division to classes}
+
+When first exploring the data from \ref{datalink}, it can be seen that we have majority of comments that are not classified as harmful (clean) and small number of comments that are classified as harmful (toxic). Table \ref{table:comment_counts} shows how the comments are divided between clean and toxic classes. 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | r |}
+\hline
+Document class & Count & Percentage \\ \hline
+All comments & $159571$ & -  \\ \hline
+Clean comments & $143346$ & $89,8\%$ \\ \hline
+Toxic comments & $16225$  & $10,2\%$ \\ \hline
+\end{tabular}
+\label{table:comment_counts}
+\caption{Clean comments against toxic comments in training data}
+\end{table}
+
+When we look at the toxic comment with more care, table \ref{table:harmfull_counts} shows how the comments are divided between the six classes that were introduced.  
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | r |}
+\hline
+Document class & Count & Percentage \\ \hline
+All harmful comments & $16225$ & -  \\ \hline
+Toxic comments & $15294$ & $94,3\%$ \\ \hline
+Obscene comments & $8449$  & $52,1\%$ \\ \hline
+Insulting comments & $7887$  & $48,5\%$ \\ \hline
+Identity hate comments & $1405$  & $10,2\%$ \\ \hline
+Severe toxic comments & $1595$  & $9,8\%$ \\ \hline
+Threatening comments & $478$  & $2,9\%$ \\ \hline
+\end{tabular}
+\label{table:harmfull_counts}
+\caption{What number of harmful comments belong to each class}
+\end{table}
+
+When we explore the data further, we can see that toxic comments are usually classified as multiple classes (e.g. severe toxic comment is always also classified as toxic). Table \ref{table:class_partition} shows the divison of the classes in detail.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | c | c | c | c | r |}
+\hline
+ & Toxic & Severe toxic & Obscene & Threat & Insult & Identity hate \\
+\hline 
+Toxic & $100\%$ & $9,8\%$ & $48,9\%$ & $2,8\%$ & $45,3\%$ & $8\%$ \\
+\hline
+Severe toxic & $100\%$ & $100\%$  & $95,1\%$ & $7\%$ & $86\%$ & $19,6\%$  \\
+\hline
+Obscene & $93,8\%$ & $18\%$ & $100\%$ & $3,6\%$ & $72,8\%$ & $12,2\%$  \\
+\hline
+Threat & $93,9\%$ & $23,4\%$ & $63\%$ & $100\%$ & $64,2\%$ & $20,5\%$ \\
+\hline
+Insult & $93,2\%$ & $17,4\%$ & $78,1\%$ & $3,9\%$ & $100\%$ & $14,7\%$ \\
+\hline
+Identity hate & $92,7\%$ & $22,3\%$ & $73,5\%$ & $7\%$ & $82,6\%$ & $100\%$ \\
+\hline
+\end{tabular}
+\label{table:class_partition}
+\caption{What percentage of comments classified as some class (on the left column) is also classified as another class (on the top row)}
+\end{table}
+
+\subsection{Contents of the comments }
+
+When we further look into the comments of each class, we can see in table \ref{table:word_counts} that most of the times clean comments tend to have more words on average. 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | r |}
+\hline
+class & Words in average in a comment  \\ \hline
+clean comments & $42$ \\ \hline
+Toxic comments & $35$  \\ \hline
+Obscene comments & $35$   \\ \hline
+Insulting comments & $34$  \\ \hline
+Identity hate comments & $38$ \\ \hline
+Severe toxic comments & $63$  \\ \hline
+Threatening comments & $42$  \\ \hline
+\end{tabular}
+\label{table:word_counts}
+\caption{Average amount of words in a comment based on the class}
+\end{table}
+
+Further diving into the comments, we can find most frequent words for each of the classes, as seen in Table ??.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | c | c |}
+\hline
+Class & Most common words & class & Most common words \\ \hline
+Clean comments &  I & Toxic comments &  I \\
+ &  article & & you \\
+ &  the & & fuck \\
+ &  page & & the \\
+ &  wikipedia & & shit \\ \hline
+Severe toxic comments &  Fuck & Obscene comments &  You \\
+ &  you & & fuck \\
+ &  I  & & I\\
+ &  suck & & shit\\
+ &  ass & & suck \\ \hline
+threatening comments &  I & Insulting comments &  You \\
+ &  die & & fuck  \\
+ &  you & & I \\
+ &  ass & & suck \\
+ &  will / kill & & nigger \\ \hline
+Identity hate comments &  nigger & & \\
+ &  fat & & \\
+ &  jew & & \\
+ &  I & & \\
+ &  you & & \\
+\hline
+\end{tabular}
+\label{table:frequent_words}
+\caption{Five most frequent words for each class}
+\end{table}
+
+\subsection{Conclusions from the data }
+
+Given the training data, it seems to be dominated by clean comments, which would correspond most likely to real-world situation. 
+
+Looking at the harmful comments, it seems that majority of them are less harmful like toxic or obscene while more serious threatening and hateful comments are much more rare. 
+
+Looking at the lengths of the sentences, we can see that toxic comments tend to be a bit shorter, which could be caused by harmful comments be written as a impulse, while non-harmful comments are written with more thought. Exception to this rule is with more severe classes of harmful comments (severe toxic, threatening), that most like take also more thought to craft. TODO: can this be usefull?
+
+When looking at the word-frequencies for the classes, we can see that classes that usually appear together (e.g. severe toxic, obscene), also share common words, while classes that rarely are classified together (e.g. identity hate, threat) tend to have different set of frequent words.
+
+\section{Data preprocessing }
+
+\section{Overview of the chosen approaches }
+
+\section{Experimental results}
+
+\section{Conclusions}
+
+
+\begin{thebibliography}{99}
+\bibitem{datalink} Data available at:
+
+\url{https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge}.
+
+\end{thebibliography}
+
+
+%\begin{figure}[h]
+%\centering
+%\includegraphics[scale=1]{p4.jpg}
+%\caption{State transition diagram}
+%\end{figure}
+\end{document}
