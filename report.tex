@@ -203,14 +203,16 @@ Looking at the individual comments, we have a lot of special characters and word
 \begin{tabular}{| l | c | c |}
 \hline
 Class & Example comment & observations \\ \hline
-Toxic & TODO \\ \hline
+Toxic & TODO & \\ \hline
 Threat & Hi! I am back again! \textbackslash n Last warning! \textbackslash n ... & Line endings \\ \hline
 \end{tabular}
 \caption{Example comments}
 \label{table:example_commnets}
 \end{table}
 
-\subsection{Preprocessing methods and result}
+Looking at the observations of the comments, it seems that comments that toxic comments could also be identified by things that are normally processed out. (e.g. all caps or multiple explanation marks). However as it was also observed, classes can be also inferred from just words they contain which is why we fully pre process the data. 
+
+\subsection{Preprocessing methods}
 
 To do the preprocessing, we then decided to use \textit{nltk}'s word tokenizer while also filtering out punctuations, stopwords and numbers. 
 
@@ -238,17 +240,41 @@ DOC2VEC rnn classifier & own implementation \\ \hline
 
 Sklearn's methods are used to see how well our implementation does when compared to pre-made methods. 
 
-\subsection{Pre-implemented reference approaches}
-
-To compare how our method does, we compare it to \textit{sklearn}'s methods. Given that toxic comments have unique words that define the classes we expect that the reference methods will do well on the data. 
+\vline
 
 \subsection{Own implementations}
 
+\textbf{BOW classifier}
+
+For the first model we used neural network with BOW-vectors. As a input, we take a one hot vector that is connected by 2 hidden layer to a output layer of 6-sigmoids. With this implementation we found that memory required to complete the code is quite significant and we had to run the model on computers of the computer lab.
+
+\vline
+
+\noindent \textbf{DOV2VEC with gensim}
+
+For doing DOC2VEC we train the embedding with gensim and use the vectors as a input to the neural network. \textbf{TODO: What kind of Neural Netwokrs use the embedding!} (Normal NN, LSTM)
+
 \section{Experimental results}
+
+We obtained results as seen in table \ref{table:results}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{| l | c | }
+\hline
+Classifier & ROC AUC score  \\ \hline
+\end{tabular}
+\caption{Results of the experiments}
+\label{table:results}
+\end{table}
+
+In the table we can see that the neural network with BOW and the sklearn's methods (that also utilize BOW-presentation) are dooing the best while predicting the output.
 
 \section{Conclusions}
 
+As seen on the previous chapter, the sklearns simple methods do really well on the problem which might be caused by that the toxic comments have explicit words that are easy to find, even with these simple models. We also achieved results that were good using neural networks.
 
+We expect that one could achieve even better results utilizing the capital letter and special symbols in the data that are specific to some inputs and this could be one thing to be improved. Another thing that the work could be continued on is making the LSTM work. 
 
 \begin{thebibliography}{99}
 \bibitem{datalink} Data available at:
